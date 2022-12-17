@@ -32,6 +32,7 @@ namespace _2048_v0._3
         Label[,] array_labels = new Label[4, 4];     // Tableau de 4x4 labels (pour affichage)
         Random random = new Random();
         bool hasWon = false;
+        bool hasLost = false;
         int[,] array_example_beginning = { { 2, 0, 0, 2 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };  // Tableau de 4x4 entiers (pour démo début de jeu)
         int[,] array_example_ingame = { { 4096, 8192, 1024, 0 }, { 2048, 4, 2, 128 }, { 8, 16, 4, 512 }, { 32, 256, 2048, 64 } };  // Tableau de 4x4 entiers (pour démo milieu de partie avec toutes les valeurs)
         int[,] array_example_test = { { 4096, 8192, 1024, 0 }, { 2048, 4, 2, 128 }, { 8, 16, 4, 512 }, { 2, 2, 2, 2 } };
@@ -59,6 +60,8 @@ namespace _2048_v0._3
             list_zero = fnListCoordZero();
             fnCreateTile(list_zero);
             fnDisplay(array_memory);
+            hasWon = false;
+            hasLost = false;
         }
 
         // Déclaration de la fonction appelée pour :
@@ -347,6 +350,52 @@ namespace _2048_v0._3
             }
         }
 
+        // Regarde s'il y a des tuiles adjacentes de même valeur dans la grille. Si oui, retourne false. Si non, retourne true.
+        private void fnCheckFail()
+        {
+            hasLost = true;
+            // Recherche de paires avec lecture horizontale de la grille, ligne par ligne
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    if (array_memory[i, j] == array_memory[i, j + 1])
+                    {
+                        hasLost = false;
+                    }
+
+                }
+            }
+
+            // Recherche de paires avec lecture verticale de la grille, colonne par colonne
+            for (int j = 0; j < 4; j++)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    if (array_memory[i, j] == array_memory[i + 1, j])
+                    {
+                        hasLost = false;
+                    }
+                }
+            }
+
+            // Si on a trouvé aucune paire, alors on a perdu (car la fonction n'est appelée que lorsqu'il n'y a déjà plus de cases vides)
+            if (hasLost == true)
+            {
+                // Mettra la valeur DialogResult.Yes ou DialogResult.No dans la variable answer
+                // (Pourquoi pas à remplacer par un nouveau form pour plus de liberté...)
+                DialogResult answer = MessageBox.Show("Vous avez perdu...\nVoulez-vous voir la grille ou commencer une nouvelle partie ?\n\n" +
+                                                      "Oui : Voir la grille\nNon : Commencer une nouvelle partie",
+                                                      "Dommage !",
+                                                      MessageBoxButtons.YesNo);
+
+                if (answer == DialogResult.No)
+                {
+                    fnStartNewGame();
+                }
+            }
+        }
+
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         // Fonctions d'évènements
 
@@ -394,6 +443,7 @@ namespace _2048_v0._3
         private void displayBeginningToolStripMenuItem_Click(object sender, EventArgs e)
         {
             hasWon = false;
+            hasLost = false;
             fnCopy2DArray(array_example_beginning, array_memory);
             fnDisplay(array_memory);
         }
@@ -402,6 +452,7 @@ namespace _2048_v0._3
         private void displayExampleInGameGridToolStripMenuItem_Click(object sender, EventArgs e)
         {
             hasWon = false;
+            hasLost = false;
             fnCopy2DArray(array_example_ingame, array_memory);
             fnDisplay(array_memory);
 
@@ -430,6 +481,7 @@ namespace _2048_v0._3
         private void displayExampleTestGridToolStripMenuItem_Click(object sender, EventArgs e)
         {
             hasWon = false;
+            hasLost = false;
             fnCopy2DArray(array_example_test, array_memory);
             fnDisplay(array_memory);
         }
@@ -456,7 +508,7 @@ namespace _2048_v0._3
                     fnAffectationApresTassement(ligne, i, array_line[0], array_line[1], array_line[2], array_line[3]);
                 }
             }
-            if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right) // Tasser à droite
+            else if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right) // Tasser à droite
             {
                 ligne = true;
                 for (int i = 0; i < 4; i++) // i = numéro de ligne
@@ -467,7 +519,7 @@ namespace _2048_v0._3
                     fnAffectationApresTassement(ligne, i, array_line[3], array_line[2], array_line[1], array_line[0]);
                 }
             }
-            if (e.KeyCode == Keys.W || e.KeyCode == Keys.Up) // Tasser en haut
+            else if (e.KeyCode == Keys.W || e.KeyCode == Keys.Up) // Tasser en haut
             {
                 ligne = false;
                 for (int i = 0; i < 4; i++) // i = numéro de colonne
@@ -478,7 +530,7 @@ namespace _2048_v0._3
                     fnAffectationApresTassement(ligne, i, array_line[0], array_line[1], array_line[2], array_line[3]);
                 }
             }
-            if (e.KeyCode == Keys.S || e.KeyCode == Keys.Down) // Tasser en bas
+            else if (e.KeyCode == Keys.S || e.KeyCode == Keys.Down) // Tasser en bas
             {
                 ligne = false;
                 for (int i = 0; i < 4; i++) // i = numéro de colonne
@@ -490,13 +542,15 @@ namespace _2048_v0._3
                 }
             }
 
-            // Afficher s'il y a eu un changement ou non après la dernière touche pressée
+            List<int> list_zero = fnListCoordZero();
+
+            // Si changement
             if (changes > 0)
             {
                 lblChangements.Text = "Changements : oui";
-                List<int> list_zero = fnListCoordZero();
                 fnCreateTile(list_zero);
                 fnDisplay(array_memory);
+                list_zero = fnListCoordZero(); // MAJ de la liste pour la fonction fnCheckFail un peu plus bas
 
                 if (hasWon == false)
                 {
@@ -506,6 +560,12 @@ namespace _2048_v0._3
             else
             {
                 lblChangements.Text = "Changements : non";
+            }
+
+            // Si changement ET aucun 0 ET partie pas encore perdue
+            if (changes > 0 && list_zero.Count == 0 && hasLost == false)
+            {
+                fnCheckFail();
             }
         }
 
