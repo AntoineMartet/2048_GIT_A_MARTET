@@ -2,7 +2,7 @@
 // Projet : 2048_v0.3
 // Auteur : Antoine MARTET
 // Création : mercredi 02.12.2022
-// Dernière MAJ : lundi 13.12.2022 par Antoine MARTET
+// Dernière MAJ : lundi 19.12.2022 par Antoine MARTET
 // But du programme (sprint 3) :
 //    - Si un tassement a eu lieu, faire apparaître aléatoirement un 2 ou un 4 dans une case encore vide
 //    - Déterminer après chaque tassement ou tentative de tassement si la partie est perdue ou gagnée et afficher un message le cas échéant
@@ -30,12 +30,24 @@ namespace _2048_v0._3
         Label label_record = new Label();
         Label label_score = new Label();
         Label[,] array_labels = new Label[4, 4];     // Tableau de 4x4 labels (pour affichage)
+
+        Label label_victory_background = new Label();
+        Label label_victory_message = new Label();
+        Label label_victory_continue = new Label();
+        Label label_victory_restart = new Label();
+
+        Label label_fail_background = new Label();
+        Label label_fail_message = new Label();
+        Label label_fail_continue = new Label();
+        Label label_fail_restart = new Label();
+
         Random random = new Random();
+        bool playing = true;
         bool hasWon = false;
-        bool hasLost = false;
+        bool hasFailed = false;
         int[,] array_example_beginning = { { 2, 0, 0, 2 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };  // Tableau de 4x4 entiers (pour démo début de jeu)
-        int[,] array_example_ingame = { { 4096, 8192, 1024, 0 }, { 2048, 4, 2, 128 }, { 8, 16, 4, 512 }, { 32, 256, 2048, 64 } };  // Tableau de 4x4 entiers (pour démo milieu de partie avec toutes les valeurs)
-        int[,] array_example_test = { { 4096, 8192, 1024, 0 }, { 2048, 4, 2, 128 }, { 8, 16, 4, 512 }, { 2, 2, 2, 2 } };
+        int[,] array_example_ingame = { { 128, 32, 32, 0 }, { 4, 8, 4, 8 }, { 8, 16, 4, 512 }, { 32, 256, 8, 8 } };  // Tableau de 4x4 entiers (pour démo milieu de partie avec toutes les valeurs)
+        int[,] array_example_test = { { 128, 64, 1024, 1024 }, { 32, 4, 2, 128 }, { 2, 16, 4, 512 }, { 2, 2, 2, 2 } };
         int[,] array_memory = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };  // Tableau de 4x4 entiers (pour démo milieu de jeu)
         Color[] Couleur = {Color.DimGray,                   Color.FromArgb(0, 0, 176),      Color.FromArgb(31, 19, 245),    Color.FromArgb(85, 85, 255),
                            Color.FromArgb(133, 133, 255),   Color.FromArgb(200, 200, 255),  Color.FromArgb(228, 228, 255),  Color.FromArgb(255, 255, 255),
@@ -54,6 +66,8 @@ namespace _2048_v0._3
         // Créer et affiche une grille vide sauf 2 tuiles à 2 ou 4
         private void fnStartNewGame()
         {
+            fnVictoryLabelsNotVisible();
+            fnFailLabelsNotVisible();
             fn2DArrayToZero(array_memory);
             List<int> list_zero = fnListCoordZero();
             fnCreateTile(list_zero);
@@ -61,7 +75,7 @@ namespace _2048_v0._3
             fnCreateTile(list_zero);
             fnDisplay(array_memory);
             hasWon = false;
-            hasLost = false;
+            hasFailed = false;
         }
 
         // Déclaration de la fonction appelée pour :
@@ -306,16 +320,6 @@ namespace _2048_v0._3
             {
                 array_memory[ligne, col] = 2;
             }
-            
-            /*
-            do
-            {
-                line = random.Next(4);
-                row = random.Next(4);
-            } while (array_memory[line,row] != 0);
-
-            array_memory[line,row] = 2;
-            */
         }
 
         // Regarde s'il y a un 2048 dans la grille. Si oui, message de fin de partie avec choix entre continuer et commencer une nouvelle partie
@@ -333,27 +337,17 @@ namespace _2048_v0._3
                 }
             }
 
-            // Faire un choix: continuer ou commencer une nouvelle partie ?
             if (hasWon == true)
             {
-                // Mettra la valeur DialogResult.Yes ou DialogResult.No dans la variable answer
-                // (Pourquoi pas à remplacer par un nouveau form pour plus de liberté...)
-                DialogResult answer = MessageBox.Show("Vous avez gagné !\nVoulez-vous continuer la partie ou en commencer une nouvelle ?\n\n" +
-                                                      "Oui : Continuer la partie\nNon : Commencer une nouvelle partie",
-                                                      "Félicitations !",
-                                                      MessageBoxButtons.YesNo);
-
-                if(answer == DialogResult.No)
-                {
-                    fnStartNewGame();
-                }
+                fnDisplayVictoryLabels();
+                playing = false;
             }
         }
 
         // Regarde s'il y a des tuiles adjacentes de même valeur dans la grille. Si oui, retourne false. Si non, retourne true.
         private void fnCheckFail()
         {
-            hasLost = true;
+            hasFailed = true;
             // Recherche de paires avec lecture horizontale de la grille, ligne par ligne
             for (int i = 0; i < 4; i++)
             {
@@ -361,9 +355,8 @@ namespace _2048_v0._3
                 {
                     if (array_memory[i, j] == array_memory[i, j + 1])
                     {
-                        hasLost = false;
+                        hasFailed = false;
                     }
-
                 }
             }
 
@@ -374,26 +367,113 @@ namespace _2048_v0._3
                 {
                     if (array_memory[i, j] == array_memory[i + 1, j])
                     {
-                        hasLost = false;
+                        hasFailed = false;
                     }
                 }
             }
 
-            // Si on a trouvé aucune paire, alors on a perdu (car la fonction n'est appelée que lorsqu'il n'y a déjà plus de cases vides)
-            if (hasLost == true)
+            // Si on a trouvé aucune paire, alors on a perdu (car fnCheckFail() n'est appelée que lorsqu'il n'y a déjà plus de cases vides)
+            if (hasFailed == true)
             {
-                // Mettra la valeur DialogResult.Yes ou DialogResult.No dans la variable answer
-                // (Pourquoi pas à remplacer par un nouveau form pour plus de liberté...)
-                DialogResult answer = MessageBox.Show("Vous avez perdu...\nVoulez-vous voir la grille ou commencer une nouvelle partie ?\n\n" +
-                                                      "Oui : Voir la grille\nNon : Commencer une nouvelle partie",
-                                                      "Dommage !",
-                                                      MessageBoxButtons.YesNo);
-
-                if (answer == DialogResult.No)
-                {
-                    fnStartNewGame();
-                }
+                fnDisplayFailLabels();
+                playing = false;
             }
+        }
+        
+        // Crée et affiche les labels de victoire et les évènements liés (Continuer la partie, Commencer une nouvelle partie)
+        private void fnDisplayVictoryLabels()
+        {
+            label_victory_background.Bounds = new Rectangle(170, 170, 410, 410);
+            label_victory_background.BackColor = Color.FromArgb(255, 128, 0);
+            Controls.Add(label_victory_background);
+            label_victory_background.Visible = true;
+            label_victory_background.BringToFront();
+
+            label_victory_message.Bounds = new Rectangle(175, 170 + 55, 400, 200);
+            label_victory_message.Font = new Font("Arial", 18);
+            label_victory_message.Text = "Félicitation !\nVous avez gagné !\n\nVoulez-vous continuer la partie ou en commencer une nouvelle ?\n\n";
+            label_victory_message.TextAlign = ContentAlignment.MiddleCenter;
+            label_victory_message.BackColor = Color.FromArgb(255, 128, 0);
+            Controls.Add(label_victory_message);
+            label_victory_message.BringToFront();
+            label_victory_message.Visible = true;
+
+            label_victory_continue.Bounds = new Rectangle(210, 400, 150, 40);
+            label_victory_continue.Font = new Font("Arial", 15);
+            label_victory_continue.Text = "Continuer";
+            label_victory_continue.TextAlign = ContentAlignment.MiddleCenter;
+            label_victory_continue.BackColor = Color.FromArgb(255, 255, 0);
+            Controls.Add(label_victory_continue);
+            label_victory_continue.BringToFront();
+            label_victory_continue.Visible = true;
+            label_victory_continue.Click += new EventHandler(label_victory_continue_Click);
+
+            label_victory_restart.Bounds = new Rectangle(390, 400, 150, 40);
+            label_victory_restart.Font = new Font("Arial", 15);
+            label_victory_restart.Text = "Nouvelle partie";
+            label_victory_restart.TextAlign = ContentAlignment.MiddleCenter;
+            label_victory_restart.BackColor = Color.FromArgb(255, 255, 0);
+            Controls.Add(label_victory_restart);
+            label_victory_restart.BringToFront();
+            label_victory_restart.Visible = true;
+            label_victory_restart.Click += new EventHandler(label_victory_restart_Click);
+        }
+
+        // Crée et affiche les labels de défaite et les évènements liés (Voir la grille, Commencer une nouvelle partie)
+        private void fnDisplayFailLabels()
+        {
+            label_fail_background.Bounds = new Rectangle(170, 170, 410, 410);
+            label_fail_background.BackColor = Color.FromArgb(255, 128, 0);
+            Controls.Add(label_fail_background);
+            label_fail_background.Visible = true;
+            label_fail_background.BringToFront();
+
+            label_fail_message.Bounds = new Rectangle(175, 170 + 55, 400, 200);
+            label_fail_message.Font = new Font("Arial", 18);
+            label_fail_message.Text = "Dommage !\nVous avez perdu !\n\nVoulez-vous voir la grille ou commencer une nouvelle partie ?\n\n";
+            label_fail_message.TextAlign = ContentAlignment.MiddleCenter;
+            label_fail_message.BackColor = Color.FromArgb(255, 128, 0);
+            Controls.Add(label_fail_message);
+            label_fail_message.BringToFront();
+            label_fail_message.Visible = true;
+
+            label_fail_continue.Bounds = new Rectangle(210, 400, 150, 40);
+            label_fail_continue.Font = new Font("Arial", 15);
+            label_fail_continue.Text = "Voir la grille";
+            label_fail_continue.TextAlign = ContentAlignment.MiddleCenter;
+            label_fail_continue.BackColor = Color.FromArgb(255, 255, 0);
+            Controls.Add(label_fail_continue);
+            label_fail_continue.BringToFront();
+            label_fail_continue.Visible = true;
+            label_fail_continue.Click += new EventHandler(label_fail_continue_Click);
+
+            label_fail_restart.Bounds = new Rectangle(390, 400, 150, 40);
+            label_fail_restart.Font = new Font("Arial", 15);
+            label_fail_restart.Text = "Nouvelle partie";
+            label_fail_restart.TextAlign = ContentAlignment.MiddleCenter;
+            label_fail_restart.BackColor = Color.FromArgb(255, 255, 0);
+            Controls.Add(label_fail_restart);
+            label_fail_restart.BringToFront();
+            label_fail_restart.Visible = true;
+            label_fail_restart.Click += new EventHandler(label_fail_restart_Click);
+        }
+
+        // Rend invisibles les labels de victoire
+        private void fnVictoryLabelsNotVisible()
+        {
+            label_victory_background.Visible = false;
+            label_victory_message.Visible = false;
+            label_victory_continue.Visible = false;
+            label_victory_restart.Visible = false;
+        }
+
+        // Rend invisibles les labels de défaite
+        private void fnFailLabelsNotVisible()
+        {
+            label_fail_background.Visible = false;
+            label_fail_message.Visible = false;
+            label_fail_continue.Visible = false;
+            label_fail_restart.Visible = false;
         }
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -442,8 +522,10 @@ namespace _2048_v0._3
         // Affiche le tableau mémoire de début de partie
         private void displayBeginningToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            fnVictoryLabelsNotVisible();
+            fnFailLabelsNotVisible();
             hasWon = false;
-            hasLost = false;
+            hasFailed = false;
             fnCopy2DArray(array_example_beginning, array_memory);
             fnDisplay(array_memory);
         }
@@ -451,8 +533,10 @@ namespace _2048_v0._3
         // Affiche le tableau mémoire de milieu de partie avec tous les nombres possibles
         private void displayExampleInGameGridToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            fnVictoryLabelsNotVisible();
+            fnFailLabelsNotVisible();
             hasWon = false;
-            hasLost = false;
+            hasFailed = false;
             fnCopy2DArray(array_example_ingame, array_memory);
             fnDisplay(array_memory);
 
@@ -480,8 +564,10 @@ namespace _2048_v0._3
         // Affiche le tableau de mémoire de test
         private void displayExampleTestGridToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            fnVictoryLabelsNotVisible();
+            fnFailLabelsNotVisible();
             hasWon = false;
-            hasLost = false;
+            hasFailed = false;
             fnCopy2DArray(array_example_test, array_memory);
             fnDisplay(array_memory);
         }
@@ -496,76 +582,79 @@ namespace _2048_v0._3
             int[] array_line;
             bool ligne;
 
-            if (e.KeyCode == Keys.A || e.KeyCode == Keys.Left) // Tasser à gauche
+            if(playing == true)
             {
-                ligne = true;
-                for (int i = 0; i < 4; i++) // i = numéro de ligne
+                if (e.KeyCode == Keys.A || e.KeyCode == Keys.Left) // Tasser à gauche
                 {
-                    array_line = fnMerge(array_memory[i, 0], array_memory[i, 1], array_memory[i, 2], array_memory[i, 3], out changes_temp);
-                    changes += changes_temp;
+                    ligne = true;
+                    for (int i = 0; i < 4; i++) // i = numéro de ligne
+                    {
+                        array_line = fnMerge(array_memory[i, 0], array_memory[i, 1], array_memory[i, 2], array_memory[i, 3], out changes_temp);
+                        changes += changes_temp;
 
-                    // Affectation des résultats du tassement (array_line) au tableau mémoire du jeu (array_memory)
-                    fnAffectationApresTassement(ligne, i, array_line[0], array_line[1], array_line[2], array_line[3]);
+                        // Affectation des résultats du tassement (array_line) au tableau mémoire du jeu (array_memory)
+                        fnAffectationApresTassement(ligne, i, array_line[0], array_line[1], array_line[2], array_line[3]);
+                    }
                 }
-            }
-            else if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right) // Tasser à droite
-            {
-                ligne = true;
-                for (int i = 0; i < 4; i++) // i = numéro de ligne
+                else if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right) // Tasser à droite
                 {
-                    array_line = fnMerge(array_memory[i, 3], array_memory[i, 2], array_memory[i, 1], array_memory[i, 0], out changes_temp);
-                    changes += changes_temp;
+                    ligne = true;
+                    for (int i = 0; i < 4; i++) // i = numéro de ligne
+                    {
+                        array_line = fnMerge(array_memory[i, 3], array_memory[i, 2], array_memory[i, 1], array_memory[i, 0], out changes_temp);
+                        changes += changes_temp;
 
-                    fnAffectationApresTassement(ligne, i, array_line[3], array_line[2], array_line[1], array_line[0]);
+                        fnAffectationApresTassement(ligne, i, array_line[3], array_line[2], array_line[1], array_line[0]);
+                    }
                 }
-            }
-            else if (e.KeyCode == Keys.W || e.KeyCode == Keys.Up) // Tasser en haut
-            {
-                ligne = false;
-                for (int i = 0; i < 4; i++) // i = numéro de colonne
+                else if (e.KeyCode == Keys.W || e.KeyCode == Keys.Up) // Tasser en haut
                 {
-                    array_line = fnMerge(array_memory[0, i], array_memory[1, i], array_memory[2, i], array_memory[3, i], out changes_temp);
-                    changes += changes_temp;
+                    ligne = false;
+                    for (int i = 0; i < 4; i++) // i = numéro de colonne
+                    {
+                        array_line = fnMerge(array_memory[0, i], array_memory[1, i], array_memory[2, i], array_memory[3, i], out changes_temp);
+                        changes += changes_temp;
 
-                    fnAffectationApresTassement(ligne, i, array_line[0], array_line[1], array_line[2], array_line[3]);
+                        fnAffectationApresTassement(ligne, i, array_line[0], array_line[1], array_line[2], array_line[3]);
+                    }
                 }
-            }
-            else if (e.KeyCode == Keys.S || e.KeyCode == Keys.Down) // Tasser en bas
-            {
-                ligne = false;
-                for (int i = 0; i < 4; i++) // i = numéro de colonne
+                else if (e.KeyCode == Keys.S || e.KeyCode == Keys.Down) // Tasser en bas
                 {
-                    array_line = fnMerge(array_memory[3, i], array_memory[2, i], array_memory[1, i], array_memory[0, i], out changes_temp);
-                    changes += changes_temp;
+                    ligne = false;
+                    for (int i = 0; i < 4; i++) // i = numéro de colonne
+                    {
+                        array_line = fnMerge(array_memory[3, i], array_memory[2, i], array_memory[1, i], array_memory[0, i], out changes_temp);
+                        changes += changes_temp;
 
-                    fnAffectationApresTassement(ligne, i, array_line[3], array_line[2], array_line[1], array_line[0]);
+                        fnAffectationApresTassement(ligne, i, array_line[3], array_line[2], array_line[1], array_line[0]);
+                    }
                 }
-            }
 
-            List<int> list_zero = fnListCoordZero();
+                List<int> list_zero = fnListCoordZero();
 
-            // Si changement
-            if (changes > 0)
-            {
-                lblChangements.Text = "Changements : oui";
-                fnCreateTile(list_zero);
-                fnDisplay(array_memory);
-                list_zero = fnListCoordZero(); // MAJ de la liste pour la fonction fnCheckFail un peu plus bas
-
-                if (hasWon == false)
+                // Si changement
+                if (changes > 0)
                 {
-                    fnCheckVictory();
-                }
-            }
-            else
-            {
-                lblChangements.Text = "Changements : non";
-            }
+                    lblChangements.Text = "Changements : oui";
+                    fnCreateTile(list_zero);
+                    fnDisplay(array_memory);
+                    list_zero = fnListCoordZero(); // MAJ de la liste pour la fonction fnCheckFail un peu plus bas
 
-            // Si changement ET aucun 0 ET partie pas encore perdue
-            if (changes > 0 && list_zero.Count == 0 && hasLost == false)
-            {
-                fnCheckFail();
+                    if (hasWon == false)
+                    {
+                        fnCheckVictory();
+                    }
+                }
+                else
+                {
+                    lblChangements.Text = "Changements : non";
+                }
+
+                // Si changement ET aucun 0 ET partie pas encore perdue
+                if (changes > 0 && list_zero.Count == 0 && hasFailed == false)
+                {
+                    fnCheckFail();
+                }
             }
         }
 
@@ -604,6 +693,36 @@ namespace _2048_v0._3
         private void startNewGridToolStripMenuItem_Click(object sender, EventArgs e)
         {
             fnStartNewGame();
+        }
+
+        // Rend invisibles les labels de victoire
+        private void label_victory_continue_Click(object sender, EventArgs e)
+        {
+            fnVictoryLabelsNotVisible();
+            playing = true;
+        }
+
+        // Rend invisibles les labels de victoire et commence une nouvelle partie
+        private void label_victory_restart_Click(object sender, EventArgs e)
+        {
+            fnVictoryLabelsNotVisible();
+            fnStartNewGame();
+            playing = true;
+        }
+
+        // Rend invisibles les labels de défaite
+        private void label_fail_continue_Click(object sender, EventArgs e)
+        {
+            fnFailLabelsNotVisible();
+            playing = true;
+        }
+
+        // Rend invisibles les labels de défaite et commence une nouvelle partie
+        private void label_fail_restart_Click(object sender, EventArgs e)
+        {
+            fnFailLabelsNotVisible();
+            fnStartNewGame();
+            playing = true;
         }
     }
 }

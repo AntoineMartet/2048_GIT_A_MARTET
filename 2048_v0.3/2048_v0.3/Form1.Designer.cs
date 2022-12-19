@@ -32,6 +32,7 @@
             this.testsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.displayBeginningToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.displayExampleInGameGridToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.displayExampleTestGridToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.startNewGridToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableTestToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtTuile1 = new System.Windows.Forms.TextBox();
@@ -41,7 +42,6 @@
             this.btTasser = new System.Windows.Forms.Button();
             this.txtResult = new System.Windows.Forms.TextBox();
             this.lblChangements = new System.Windows.Forms.Label();
-            this.displayExampleTestGridToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -71,28 +71,35 @@
             // displayBeginningToolStripMenuItem
             // 
             this.displayBeginningToolStripMenuItem.Name = "displayBeginningToolStripMenuItem";
-            this.displayBeginningToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.displayBeginningToolStripMenuItem.Size = new System.Drawing.Size(298, 22);
             this.displayBeginningToolStripMenuItem.Text = "Display Example Beginning Grid";
             this.displayBeginningToolStripMenuItem.Click += new System.EventHandler(this.displayBeginningToolStripMenuItem_Click);
             // 
             // displayExampleInGameGridToolStripMenuItem
             // 
             this.displayExampleInGameGridToolStripMenuItem.Name = "displayExampleInGameGridToolStripMenuItem";
-            this.displayExampleInGameGridToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.displayExampleInGameGridToolStripMenuItem.Size = new System.Drawing.Size(298, 22);
             this.displayExampleInGameGridToolStripMenuItem.Text = "Display Example In-Game Grid";
             this.displayExampleInGameGridToolStripMenuItem.Click += new System.EventHandler(this.displayExampleInGameGridToolStripMenuItem_Click);
+            // 
+            // displayExampleTestGridToolStripMenuItem
+            // 
+            this.displayExampleTestGridToolStripMenuItem.Name = "displayExampleTestGridToolStripMenuItem";
+            this.displayExampleTestGridToolStripMenuItem.Size = new System.Drawing.Size(298, 22);
+            this.displayExampleTestGridToolStripMenuItem.Text = "Display Example Test (pour gagner/perdre)";
+            this.displayExampleTestGridToolStripMenuItem.Click += new System.EventHandler(this.displayExampleTestGridToolStripMenuItem_Click);
             // 
             // startNewGridToolStripMenuItem
             // 
             this.startNewGridToolStripMenuItem.Name = "startNewGridToolStripMenuItem";
-            this.startNewGridToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.startNewGridToolStripMenuItem.Size = new System.Drawing.Size(298, 22);
             this.startNewGridToolStripMenuItem.Text = "Start New Game";
             this.startNewGridToolStripMenuItem.Click += new System.EventHandler(this.startNewGridToolStripMenuItem_Click);
             // 
             // enableTestToolStripMenuItem
             // 
             this.enableTestToolStripMenuItem.Name = "enableTestToolStripMenuItem";
-            this.enableTestToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
+            this.enableTestToolStripMenuItem.Size = new System.Drawing.Size(298, 22);
             this.enableTestToolStripMenuItem.Text = "Enable/Disable Test";
             this.enableTestToolStripMenuItem.Click += new System.EventHandler(this.enableTestToolStripMenuItem_Click);
             // 
@@ -156,13 +163,6 @@
             this.lblChangements.Size = new System.Drawing.Size(81, 13);
             this.lblChangements.TabIndex = 7;
             this.lblChangements.Text = "Changements : ";
-            // 
-            // displayExampleTestGridToolStripMenuItem
-            // 
-            this.displayExampleTestGridToolStripMenuItem.Name = "displayExampleTestGridToolStripMenuItem";
-            this.displayExampleTestGridToolStripMenuItem.Size = new System.Drawing.Size(242, 22);
-            this.displayExampleTestGridToolStripMenuItem.Text = "Display Example Test Grid";
-            this.displayExampleTestGridToolStripMenuItem.Click += new System.EventHandler(this.displayExampleTestGridToolStripMenuItem_Click);
             // 
             // Form1
             // 

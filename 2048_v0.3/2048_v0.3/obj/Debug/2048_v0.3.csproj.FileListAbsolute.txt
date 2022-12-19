@@ -41,3 +41,14 @@ C:\Users\User\Documents\CPNV\MA-20 (Lu) Application en C#\2048_GIT_A_MARTET\2048
 C:\Users\User\Documents\CPNV\MA-20 (Lu) Application en C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\2048_v0.3.csproj.CoreCompileInputs.cache
 C:\Users\User\Documents\CPNV\MA-20 (Lu) Application en C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\2048_v0.3.exe
 C:\Users\User\Documents\CPNV\MA-20 (Lu) Application en C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\2048_v0.3.pdb
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\bin\Debug\2048_v0.3.exe.config
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\bin\Debug\2048_v0.3.exe
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\bin\Debug\2048_v0.3.pdb
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\2048_v0.3.csproj.AssemblyReference.cache
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\2048_v0.3.csproj.SuggestedBindingRedirects.cache
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\_2048_v0._3.Form1.resources
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\_2048_v0._3.Properties.Resources.resources
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\2048_v0.3.csproj.GenerateResource.cache
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\2048_v0.3.csproj.CoreCompileInputs.cache
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\2048_v0.3.exe
+P:\MA-20 Application C#\2048_GIT_A_MARTET\2048_v0.3\2048_v0.3\obj\Debug\2048_v0.3.pdb
