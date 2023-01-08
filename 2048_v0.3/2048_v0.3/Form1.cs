@@ -12,10 +12,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace _2048_v0._3
 {
@@ -27,8 +29,12 @@ namespace _2048_v0._3
         // Variables globales et initialisation du formulaire
 
         Label label_background = new Label();
-        Label label_record = new Label();
-        Label label_score = new Label();
+        Label label_record_text = new Label();
+        Label label_record_number = new Label();
+        Label label_score_text = new Label();
+        Label label_score_number = new Label();
+        Label label_time = new Label();
+
         Label[,] array_labels = new Label[4, 4];     // Tableau de 4x4 labels (pour affichage)
 
         Label label_victory_background = new Label();
@@ -41,14 +47,23 @@ namespace _2048_v0._3
         Label label_fail_continue = new Label();
         Label label_fail_restart = new Label();
 
+        Label label_pause = new Label();
+
+        Font MediumFont = new Font("Microsoft Sans Serif", 10);
+
         Random random = new Random();
         bool playing = true;
         bool hasWon = false;
         bool hasFailed = false;
-        int[,] array_example_beginning = { { 2, 0, 0, 2 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };  // Tableau de 4x4 entiers (pour démo début de jeu)
-        int[,] array_example_ingame = { { 128, 32, 32, 0 }, { 4, 8, 4, 8 }, { 8, 16, 4, 512 }, { 32, 256, 8, 8 } };  // Tableau de 4x4 entiers (pour démo milieu de partie avec toutes les valeurs)
-        int[,] array_example_test = { { 128, 64, 1024, 1024 }, { 32, 4, 2, 128 }, { 2, 16, 4, 512 }, { 2, 2, 2, 2 } };
-        int[,] array_memory = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };  // Tableau de 4x4 entiers (pour démo milieu de jeu)
+        int seconds = 0;
+        int score = 0;
+        int record;
+        TimeSpan time = new TimeSpan();
+
+        int[,] array_example_beginning = { { 2, 0, 0, 2 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };  // Tableau de 4x4 entiers (pour démo début de partie)
+        int[,] array_example_ingame = { { 128, 32, 32, 0 }, { 4, 8, 4, 8 }, { 8, 16, 4, 512 }, { 32, 256, 8, 8 } };  // Tableau de 4x4 entiers (pour démo milieu de partie)
+        int[,] array_example_test = { { 128, 64, 1024, 1024 }, { 32, 4, 2, 128 }, { 2, 16, 4, 512 }, { 16, 32, 64, 128 } };  // Tableau de 4x4 entiers (pour démo fin de partie)
+        int[,] array_memory = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };  // Tableau principal
         Color[] Couleur = {Color.DimGray,                   Color.FromArgb(0, 0, 176),      Color.FromArgb(31, 19, 245),    Color.FromArgb(85, 85, 255),
                            Color.FromArgb(133, 133, 255),   Color.FromArgb(200, 200, 255),  Color.FromArgb(228, 228, 255),  Color.FromArgb(255, 255, 255),
                            Color.FromArgb(240, 207, 207),   Color.FromArgb(234, 153, 153),  Color.FromArgb(224, 95, 95),    Color.FromArgb(207, 42, 39),
@@ -63,19 +78,68 @@ namespace _2048_v0._3
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         // Fonctions perso
 
-        // Créer et affiche une grille vide sauf 2 tuiles à 2 ou 4
-        private void fnStartNewGame()
+        // Met le timer à 0 et l'active
+        private void fnTimerToZero()
+        {
+            // "seconds = 0" ne suffit pas car le timer est toujours activé et donc la 1ère "nouvelle" seconde durera entre 0 et 1000 ms au lieu de 1000 ms.
+            // D'où l'enchaînement de la désactivation et de la réactivation du timer. Le "timer_game.Enabled = false" remet le timer à 0.
+            // "Temps : 00:00:00" sert à afficher le temps à 0 immédiatement plutôt que d'attendre le prochain tick du timer.
+
+            seconds = 0;
+            label_time.Text = "Temps : 00:00:00";
+            timer_game.Enabled = false;
+            timer_game.Enabled = true;
+        }
+
+        // Affiche une grille préexistante ou crée une grille aléatoire de début de jeu
+        private void fnStartNewGrid(int[,] array)
         {
             fnVictoryLabelsNotVisible();
             fnFailLabelsNotVisible();
-            fn2DArrayToZero(array_memory);
-            List<int> list_zero = fnListCoordZero();
-            fnCreateTile(list_zero);
-            list_zero = fnListCoordZero();
-            fnCreateTile(list_zero);
-            fnDisplay(array_memory);
             hasWon = false;
             hasFailed = false;
+            playing = true;
+            score = 0;
+            label_score_number.Text = "0";
+            fnTimerToZero();
+            picture_play_pause.Visible = true;
+            picture_play_pause.Image = global::_2048_v0._3.Properties.Resources.pause_button;
+            label_pause.Visible = false;
+
+            if (array == array_memory)
+            {
+                fn2DArrayToZero(array_memory);
+                List<int> list_zero = fnListCoordZero();
+                fnCreateTile(list_zero);
+                list_zero = fnListCoordZero();
+                fnCreateTile(list_zero);
+            }
+            else
+            {
+                fnCopy2DArray(array, array_memory);
+            }
+
+            fnDisplay(array_memory);
+
+            /*
+            
+            /!\ NE SURTOUT PAS FAIRE CA :
+            
+            array_memory = array_example_ingame;
+            fnDisplay(array_memory);
+
+            /!\ In C#, arrays are of reference type and not of value type. The value of array_example_ingame is just a reference to a byte array.
+            So after that assignment, changed made to the byte array "via" one variable will be visible "via" the other variable, as they now both
+            reference to the same byte array (they point to the same memory location).
+            Pour des array 1D on peut utiliser la méthode Array.CopyTo : sourceArray.CopyTo(destinationArray, startingIndex);
+            Pour des array 2D le mieux pour l'instant est de faire une double boucle for.
+
+            Sources :
+            https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/reference-types?redirectedfrom=MSDN
+            https://stackoverflow.com/questions/29398848/c-assign-array-to-another-array-copy-or-pointer-exchange
+            https://learn.microsoft.com/en-us/dotnet/api/system.array.copyto?redirectedfrom=MSDN&view=net-7.0#System_Array_CopyTo_System_Array_System_Int32_
+
+            */
         }
 
         // Déclaration de la fonction appelée pour :
@@ -111,14 +175,14 @@ namespace _2048_v0._3
         }
 
         // Fonction de tassement à 4 paramètres
-        // Envoyer les arguments [i,0][i,1][i,2][i,3] pour tasser à gauche
-        // Envoyer les arguments [i,3][i,2][i,1][i,0] pour tasser à droite
-        // Envoyer les arguments [0,i][1,i][2,i][3,i] pour tasser en haut
-        // Envoyer les arguments [3,i][2,i][1,i][0,i] pour tasser en bas
+        // Envoyer les arguments [i,0][i,1][i,2][i,3] pour tasser à gauche (i est la ligne)
+        // Envoyer les arguments [i,3][i,2][i,1][i,0] pour tasser à droite (i est la ligne)
+        // Envoyer les arguments [0,j][1,j][2,j][3,j] pour tasser en haut (j est la colonne)
+        // Envoyer les arguments [3,j][2,j][1,j][0,j] pour tasser en bas (j est la colonne)
         private int[] fnMerge(int a, int b, int c, int d, out int i)
         {
             i = 0;  // Compteur de changement. Vaut 1 ou 0 à la fin de la fonction selon qu'il y a eu au moins un changement ou non dans la ligne à tasser.
-            int[] array_temp = { a, b, c, d };  // Sauvegarde les paramètres reçus (pour les comparer avec les valeurs qui seront renvoyées)
+            int[] array_temp = { a, b, c, d };  // Sauvegarde les paramètres reçus pour les comparer avec les valeurs qui seront renvoyées (array_result)
             int[] array_result = new int[4];
 
             // Supprimer tous les 0 dans la ligne :
@@ -148,17 +212,20 @@ namespace _2048_v0._3
                 b = c;
                 c = d;
                 d = 0;
+                score += a;
             }
             if (b == c && b != 0)
             {
                 b *= 2;
                 c = d;
                 d = 0;
+                score += b;
             }
             if (c == d && c != 0)
             {
                 c *= 2;
                 d = 0;
+                score += c;
             }
 
             array_result[0] = a;
@@ -192,18 +259,21 @@ namespace _2048_v0._3
         }
 
         // Active ou désactive les éléments du test de la fonction de tassement
-        private void fnActivationTest(bool state)
+        private void fnDisplayTest(bool state)
         {
-            txtTuile1.Enabled = state;
-            txtTuile2.Enabled = state;
-            txtTuile3.Enabled = state;
-            txtTuile4.Enabled = state;
-            btTasser.Enabled = state;
-            txtResult.Enabled = state;
+            txtTuile1.Visible = state;
+            txtTuile2.Visible = state;
+            txtTuile3.Visible = state;
+            txtTuile4.Visible = state;
+            btTasser.Visible = state;
+            txtResult.Visible = state;
+            label_changements.Visible = state;
         }
 
         // Affectation des résultats du tassement au tableau mémoire du jeu
-        private void fnAffectationApresTassement(bool l, int i, int a, int b, int c, int d)
+        // l est un booléen qui détermine si l'affectation concerne une ligne (true) ou une colonne (false)
+        // i représente l'index de la ligne ou de la colonne concernée
+        private void fnAssignAfterMerge(bool l, int i, int a, int b, int c, int d)
         {
             if (l == true)
             {
@@ -298,8 +368,6 @@ namespace _2048_v0._3
         }
 
         // Crée une tuile de valeur 2 ou 4 si un changement a eu lieu suite à une tentative de tassement
-        // "Yeux fermés" : bof
-        // "Fonction qui retourne les cases vides" puis tirage parmi la liste : mieux. Retourne [1, 3, 7, ...] ou [[0,1], [0,3], [1,7], ...]
         private void fnCreateTile(List<int> liste)
         {
             
@@ -310,8 +378,7 @@ namespace _2048_v0._3
             int ligne = position / 4;
             int col = position % 4;
 
-            // Déterminer (au hasard, 1 chance sur 8) si on créer un 2 ou un 4
-
+            // Déterminer au hasard si on crée un 2 (7 chances sur 8) ou un 4 (1 chance sur 8)
             int resultRandom = random.Next(9);
             if(resultRandom == 0)
             {
@@ -348,6 +415,7 @@ namespace _2048_v0._3
         private void fnCheckFail()
         {
             hasFailed = true;
+
             // Recherche de paires avec lecture horizontale de la grille, ligne par ligne
             for (int i = 0; i < 4; i++)
             {
@@ -383,36 +451,41 @@ namespace _2048_v0._3
         // Crée et affiche les labels de victoire et les évènements liés (Continuer la partie, Commencer une nouvelle partie)
         private void fnDisplayVictoryLabels()
         {
+            picture_play_pause.Visible = false;
+
             label_victory_background.Bounds = new Rectangle(170, 170, 410, 410);
             label_victory_background.BackColor = Color.FromArgb(255, 128, 0);
+            label_victory_background.BorderStyle = BorderStyle.FixedSingle;
             Controls.Add(label_victory_background);
             label_victory_background.Visible = true;
             label_victory_background.BringToFront();
 
             label_victory_message.Bounds = new Rectangle(175, 170 + 55, 400, 200);
             label_victory_message.Font = new Font("Arial", 18);
-            label_victory_message.Text = "Félicitation !\nVous avez gagné !\n\nVoulez-vous continuer la partie ou en commencer une nouvelle ?\n\n";
+            label_victory_message.Text = "Félicitation !\n\nVous avez gagné !\nDurée : " + time.ToString(@"hh\:mm\:ss") + "\n\nVoulez-vous continuer la partie ou en commencer une nouvelle ?\n\n";
             label_victory_message.TextAlign = ContentAlignment.MiddleCenter;
             label_victory_message.BackColor = Color.FromArgb(255, 128, 0);
             Controls.Add(label_victory_message);
             label_victory_message.BringToFront();
             label_victory_message.Visible = true;
 
-            label_victory_continue.Bounds = new Rectangle(210, 400, 150, 40);
+            label_victory_continue.Bounds = new Rectangle(210, 450, 150, 40);
             label_victory_continue.Font = new Font("Arial", 15);
             label_victory_continue.Text = "Continuer";
             label_victory_continue.TextAlign = ContentAlignment.MiddleCenter;
             label_victory_continue.BackColor = Color.FromArgb(255, 255, 0);
+            label_victory_continue.BorderStyle = BorderStyle.FixedSingle;
             Controls.Add(label_victory_continue);
             label_victory_continue.BringToFront();
             label_victory_continue.Visible = true;
             label_victory_continue.Click += new EventHandler(label_victory_continue_Click);
 
-            label_victory_restart.Bounds = new Rectangle(390, 400, 150, 40);
+            label_victory_restart.Bounds = new Rectangle(390, 450, 150, 40);
             label_victory_restart.Font = new Font("Arial", 15);
             label_victory_restart.Text = "Nouvelle partie";
             label_victory_restart.TextAlign = ContentAlignment.MiddleCenter;
             label_victory_restart.BackColor = Color.FromArgb(255, 255, 0);
+            label_victory_restart.BorderStyle = BorderStyle.FixedSingle;
             Controls.Add(label_victory_restart);
             label_victory_restart.BringToFront();
             label_victory_restart.Visible = true;
@@ -422,36 +495,41 @@ namespace _2048_v0._3
         // Crée et affiche les labels de défaite et les évènements liés (Voir la grille, Commencer une nouvelle partie)
         private void fnDisplayFailLabels()
         {
+            picture_play_pause.Visible = false;
+
             label_fail_background.Bounds = new Rectangle(170, 170, 410, 410);
             label_fail_background.BackColor = Color.FromArgb(255, 128, 0);
+            label_fail_background.BorderStyle = BorderStyle.FixedSingle;
             Controls.Add(label_fail_background);
             label_fail_background.Visible = true;
             label_fail_background.BringToFront();
 
             label_fail_message.Bounds = new Rectangle(175, 170 + 55, 400, 200);
             label_fail_message.Font = new Font("Arial", 18);
-            label_fail_message.Text = "Dommage !\nVous avez perdu !\n\nVoulez-vous voir la grille ou commencer une nouvelle partie ?\n\n";
+            label_fail_message.Text = "Dommage !\nVous avez perdu !\n\nDurée : " + time.ToString(@"hh\:mm\:ss") + "\n\nVoulez-vous voir la grille ou commencer une nouvelle partie ?\n\n";
             label_fail_message.TextAlign = ContentAlignment.MiddleCenter;
             label_fail_message.BackColor = Color.FromArgb(255, 128, 0);
             Controls.Add(label_fail_message);
             label_fail_message.BringToFront();
             label_fail_message.Visible = true;
 
-            label_fail_continue.Bounds = new Rectangle(210, 400, 150, 40);
+            label_fail_continue.Bounds = new Rectangle(210, 450, 150, 40);
             label_fail_continue.Font = new Font("Arial", 15);
             label_fail_continue.Text = "Voir la grille";
             label_fail_continue.TextAlign = ContentAlignment.MiddleCenter;
             label_fail_continue.BackColor = Color.FromArgb(255, 255, 0);
+            label_fail_continue.BorderStyle = BorderStyle.FixedSingle;
             Controls.Add(label_fail_continue);
             label_fail_continue.BringToFront();
             label_fail_continue.Visible = true;
             label_fail_continue.Click += new EventHandler(label_fail_continue_Click);
 
-            label_fail_restart.Bounds = new Rectangle(390, 400, 150, 40);
+            label_fail_restart.Bounds = new Rectangle(390, 450, 150, 40);
             label_fail_restart.Font = new Font("Arial", 15);
             label_fail_restart.Text = "Nouvelle partie";
             label_fail_restart.TextAlign = ContentAlignment.MiddleCenter;
             label_fail_restart.BackColor = Color.FromArgb(255, 255, 0);
+            label_fail_restart.BorderStyle = BorderStyle.FixedSingle;
             Controls.Add(label_fail_restart);
             label_fail_restart.BringToFront();
             label_fail_restart.Visible = true;
@@ -474,6 +552,19 @@ namespace _2048_v0._3
             label_fail_message.Visible = false;
             label_fail_continue.Visible = false;
             label_fail_restart.Visible = false;
+        }
+
+        // Affiche le message de pause et cache la grille
+        private void fnDisplayPause()
+        {
+            label_pause.Bounds = new Rectangle(170, 170, 410, 410);
+            label_pause.BackColor = Color.FromArgb(255, 128, 0);
+            label_pause.Font = new Font("Arial", 18);
+            label_pause.Text = "Partie en pause";
+            label_pause.TextAlign = ContentAlignment.MiddleCenter;
+            Controls.Add(label_pause);
+            label_pause.Visible = true;
+            label_pause.BringToFront();
         }
 
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -504,76 +595,112 @@ namespace _2048_v0._3
             Controls.Add(label_background);
             label_background.SendToBack();  // L'inverse : BringToFront()
 
-            // On crée un label pour le score
-            label_score.Bounds = new Rectangle(490, 150, 90, 15);
-            label_score.BackColor = Color.Gray;
-            label_score.Text = "Score : ";
-            label_score.TextAlign = ContentAlignment.MiddleRight;
-            Controls.Add(label_score);
+            // On crée un label pour le texte "Score : " aligné à gauche
+            label_score_text.Bounds = new Rectangle(450, 145, 130, 20);
+            label_score_text.BackColor = Color.Gray;
+            label_score_text.Text = "Score : ";
+            label_score_text.TextAlign = ContentAlignment.MiddleLeft;
+            label_score_text.Font = MediumFont;
+            Controls.Add(label_score_text);
 
-            // On crée un label pour le record
-            label_record.Bounds = new Rectangle(490, 130, 90, 15);
-            label_record.BackColor = Color.Gray;
-            label_record.Text = "Record : ";
-            label_record.TextAlign = ContentAlignment.MiddleRight;
-            Controls.Add(label_record);
+            // On crée un label pour le nombre du score aligné à droite
+            label_score_number.Bounds = new Rectangle(510, 145, 70, 20);
+            label_score_number.BackColor = Color.Gray;
+            label_score_number.Text = "0";
+            label_score_number.TextAlign = ContentAlignment.MiddleRight;
+            label_score_number.Font = MediumFont;
+            Controls.Add(label_score_number);
+            label_score_number.BringToFront();
+
+            using (StreamReader reader = new StreamReader("C:\\Users\\User\\Documents\\CPNV\\MA-20 (Lu) Application en C#\\2048_GIT_A_MARTET\\2048_v0.3\\2048_v0.3\\Resources\\RecordSave.txt"))
+            {
+                record = Convert.ToInt32(reader.ReadLine());
+            }
+
+            // On crée un label pour le texte "Record : " aligné à gauche
+            label_record_text.Bounds = new Rectangle(450, 120, 130, 20);
+            label_record_text.BackColor = Color.Gray;
+            label_record_text.Text = "Record : ";
+            label_record_text.TextAlign = ContentAlignment.MiddleLeft;
+            label_record_text.Font = MediumFont;
+            Controls.Add(label_record_text);
+
+            // On crée un label pour le nombre du record aligné à droite
+            label_record_number.Bounds = new Rectangle(510, 120, 70, 20);
+            label_record_number.BackColor = Color.Gray;
+            label_record_number.Text = Convert.ToString(record);
+            label_record_number.TextAlign = ContentAlignment.MiddleRight;
+            label_record_number.Font = MediumFont;
+            Controls.Add(label_record_number);
+            label_record_number.BringToFront();
+
+            // On crée un label pour le temps
+            label_time.Bounds = new Rectangle(170, 145, 130, 20);
+            label_time.BackColor = Color.Gray;
+            label_time.Text = "Temps : 00:00:00";
+            label_time.TextAlign = ContentAlignment.MiddleCenter;
+            label_time.Font = MediumFont;
+            Controls.Add(label_time);
         }
 
         // Affiche le tableau mémoire de début de partie
         private void displayBeginningToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            fnVictoryLabelsNotVisible();
-            fnFailLabelsNotVisible();
-            hasWon = false;
-            hasFailed = false;
-            fnCopy2DArray(array_example_beginning, array_memory);
-            fnDisplay(array_memory);
+            fnStartNewGrid(array_example_beginning);
         }
 
         // Affiche le tableau mémoire de milieu de partie avec tous les nombres possibles
         private void displayExampleInGameGridToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            fnVictoryLabelsNotVisible();
-            fnFailLabelsNotVisible();
-            hasWon = false;
-            hasFailed = false;
-            fnCopy2DArray(array_example_ingame, array_memory);
-            fnDisplay(array_memory);
-
-            /*
-            
-            /!\ NE SURTOUT PAS FAIRE CA :
-            
-            array_memory = array_example_ingame;
-            fnDisplay(array_memory);
-
-            /!\ In C#, arrays are of reference type and not of value type. The value of array_example_ingame is just a reference to a byte array.
-            So after that assignment, changed made to the byte array "via" one variable will be visible "via" the other variable, as they now both
-            reference to the same byte array (they point to the same memory location).
-            Pour des array 1D on peut utiliser la méthode Array.CopyTo : sourceArray.CopyTo(destinationArray, startingIndex);
-            Pour des array 2D le mieux pour l'instant est de faire une double boucle for.
-
-            Sources :
-            https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/reference-types?redirectedfrom=MSDN
-            https://stackoverflow.com/questions/29398848/c-assign-array-to-another-array-copy-or-pointer-exchange
-            https://learn.microsoft.com/en-us/dotnet/api/system.array.copyto?redirectedfrom=MSDN&view=net-7.0#System_Array_CopyTo_System_Array_System_Int32_
-
-            */
+            fnStartNewGrid(array_example_ingame);
         }
 
         // Affiche le tableau de mémoire de test
         private void displayExampleTestGridToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            fnVictoryLabelsNotVisible();
-            fnFailLabelsNotVisible();
-            hasWon = false;
-            hasFailed = false;
-            fnCopy2DArray(array_example_test, array_memory);
-            fnDisplay(array_memory);
+            fnStartNewGrid(array_example_test);
         }
 
+        // Créer une grille aléatoire de début de jeu
+        private void startNewGridToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            fnStartNewGrid(array_memory);
+        }
+
+        // Activer ou désactiver le test du tassement
+        private void enableTestToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (txtTuile1.Visible)
+            {
+                fnDisplayTest(false);
+            }
+            else
+            {
+                fnDisplayTest(true);
+            }
+        }
+
+        // Tassement pour le test
+        private void btTasser_Click(object sender, EventArgs e)
+        {
+            int changes_temp;
+            int[] array_test_after = fnMerge(Int32.Parse(txtTuile1.Text), Int32.Parse(txtTuile2.Text), Int32.Parse(txtTuile3.Text), Int32.Parse(txtTuile4.Text), out changes_temp);
+            txtResult.Text = array_test_after[0].ToString() + " " + array_test_after[1].ToString() + " " + array_test_after[2].ToString() + " " + array_test_after[3].ToString();
+
+            if (changes_temp > 0)
+            {
+                label_changements.Text = "Changements : oui";
+            }
+            else
+            {
+                label_changements.Text = "Changements : non";
+            }
+        }
+
+        // Essaie de tasser, crée une tuile si nécessaire, checke la victoire et la défaite
+        // S'exécute quand on appuie sur n'importe quelle touche du clavier
         // e contient des infos sur l'évènement, dont le KeyCode (la touche appuyée)
-        // Si on créer un bouton, écrire Form1_KeyDown(sender, e) dans Bouton1_Keydown pour transmettre l'info des touches appuyées à Form1
+        // Si on crée un bouton, écrire Form1_KeyDown(sender, e) dans Bouton1_Keydown pour transmettre l'info des touches appuyées à Form1
         // Ca marchera pour ASDW mais pas pour les flèches
         private void Form1_KeyUp(object sender, KeyEventArgs e)
         {
@@ -593,7 +720,7 @@ namespace _2048_v0._3
                         changes += changes_temp;
 
                         // Affectation des résultats du tassement (array_line) au tableau mémoire du jeu (array_memory)
-                        fnAffectationApresTassement(ligne, i, array_line[0], array_line[1], array_line[2], array_line[3]);
+                        fnAssignAfterMerge(ligne, i, array_line[0], array_line[1], array_line[2], array_line[3]);
                     }
                 }
                 else if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right) // Tasser à droite
@@ -604,7 +731,7 @@ namespace _2048_v0._3
                         array_line = fnMerge(array_memory[i, 3], array_memory[i, 2], array_memory[i, 1], array_memory[i, 0], out changes_temp);
                         changes += changes_temp;
 
-                        fnAffectationApresTassement(ligne, i, array_line[3], array_line[2], array_line[1], array_line[0]);
+                        fnAssignAfterMerge(ligne, i, array_line[3], array_line[2], array_line[1], array_line[0]);
                     }
                 }
                 else if (e.KeyCode == Keys.W || e.KeyCode == Keys.Up) // Tasser en haut
@@ -615,7 +742,7 @@ namespace _2048_v0._3
                         array_line = fnMerge(array_memory[0, i], array_memory[1, i], array_memory[2, i], array_memory[3, i], out changes_temp);
                         changes += changes_temp;
 
-                        fnAffectationApresTassement(ligne, i, array_line[0], array_line[1], array_line[2], array_line[3]);
+                        fnAssignAfterMerge(ligne, i, array_line[0], array_line[1], array_line[2], array_line[3]);
                     }
                 }
                 else if (e.KeyCode == Keys.S || e.KeyCode == Keys.Down) // Tasser en bas
@@ -626,103 +753,120 @@ namespace _2048_v0._3
                         array_line = fnMerge(array_memory[3, i], array_memory[2, i], array_memory[1, i], array_memory[0, i], out changes_temp);
                         changes += changes_temp;
 
-                        fnAffectationApresTassement(ligne, i, array_line[3], array_line[2], array_line[1], array_line[0]);
+                        fnAssignAfterMerge(ligne, i, array_line[3], array_line[2], array_line[1], array_line[0]);
                     }
                 }
 
                 List<int> list_zero = fnListCoordZero();
 
-                // Si changement
+                // Si changement : on crée une nouvelle tuile, on actualise le score, on checke le record, la victoire et la défaite
                 if (changes > 0)
                 {
-                    lblChangements.Text = "Changements : oui";
+                    label_changements.Text = "Changements : oui";
                     fnCreateTile(list_zero);
                     fnDisplay(array_memory);
                     list_zero = fnListCoordZero(); // MAJ de la liste pour la fonction fnCheckFail un peu plus bas
+                    label_score_number.Text = Convert.ToString(score);
 
+                    using (StreamReader reader = new StreamReader("C:\\Users\\User\\Documents\\CPNV\\MA-20 (Lu) Application en C#\\2048_GIT_A_MARTET\\2048_v0.3\\2048_v0.3\\Resources\\RecordSave.txt"))
+                    {
+                        record = Convert.ToInt32(reader.ReadLine());
+                    }
+
+                    if (score > record)
+                    {
+                        record = score;
+                        label_record_number.Text = Convert.ToString(record);
+                        using (StreamWriter writer = new StreamWriter("C:\\Users\\User\\Documents\\CPNV\\MA-20 (Lu) Application en C#\\2048_GIT_A_MARTET\\2048_v0.3\\2048_v0.3\\Resources\\RecordSave.txt", false))
+                        {
+                            writer.Write(record);
+                        }
+                    }
+
+
+                    // Si changement ET aucun 0 ET partie pas encore perdue : on checke la défaite
+                    if (list_zero.Count == 0 && hasFailed == false)
+                    {
+                        fnCheckFail();
+                    }
+
+                    // Si changement ET partie pas encore gagnée : on checke la victoire
                     if (hasWon == false)
                     {
                         fnCheckVictory();
                     }
+
+                    /* NB : il est possible d'à la fois gagner et perdre. Du coup pour l'instant on checke la victoire en 2e pour que le message
+                     * de félicitation apparaisse en premier. Celui de défaite est toujours affiché mais juste en dessous.
+                     */
                 }
                 else
                 {
-                    lblChangements.Text = "Changements : non";
-                }
-
-                // Si changement ET aucun 0 ET partie pas encore perdue
-                if (changes > 0 && list_zero.Count == 0 && hasFailed == false)
-                {
-                    fnCheckFail();
+                    label_changements.Text = "Changements : non";
                 }
             }
-        }
-
-        // Activer ou désactiver le test du tassement
-        private void enableTestToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (txtTuile1.Enabled)
-            {
-                fnActivationTest(false);
-            }
-            else
-            {
-                fnActivationTest(true);
-            }
-        }
-
-        // Tassement pour le test
-        private void btTasser_Click(object sender, EventArgs e)
-        {
-            int changes_temp;
-            int[] array_test_after = fnMerge(Int32.Parse(txtTuile1.Text), Int32.Parse(txtTuile2.Text), Int32.Parse(txtTuile3.Text), Int32.Parse(txtTuile4.Text), out changes_temp);
-            txtResult.Text = array_test_after[0].ToString() + " " + array_test_after[1].ToString() + " " + array_test_after[2].ToString() + " " + array_test_after[3].ToString();
-
-            // Si la ligne pré-tassement est différente de la ligne post-tassement, incrémenter la variable changes
-            if (changes_temp > 0)
-            {
-                lblChangements.Text = "Changements : oui";
-            }
-            else
-            {
-                lblChangements.Text = "Changements : non";
-            }
-        }
-
-        // Créer une grille aléatoire de début de jeu
-        private void startNewGridToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            fnStartNewGame();
         }
 
         // Rend invisibles les labels de victoire
         private void label_victory_continue_Click(object sender, EventArgs e)
         {
             fnVictoryLabelsNotVisible();
-            playing = true;
+
+            // Si hasFailed == true, alors les touches de jeu, le bouton de pause et le compteur doivent rester inactifs
+            // Si hasFailed == false, alors les touches de jeu, le bouton de pause et le compteur doivent redevenir actifs
+            if (hasFailed == false) 
+            {
+                playing = true;
+                picture_play_pause.Visible = true;
+            }
         }
 
         // Rend invisibles les labels de victoire et commence une nouvelle partie
         private void label_victory_restart_Click(object sender, EventArgs e)
         {
             fnVictoryLabelsNotVisible();
-            fnStartNewGame();
-            playing = true;
+            fnStartNewGrid(array_memory);
         }
 
         // Rend invisibles les labels de défaite
         private void label_fail_continue_Click(object sender, EventArgs e)
         {
             fnFailLabelsNotVisible();
-            playing = true;
         }
 
         // Rend invisibles les labels de défaite et commence une nouvelle partie
         private void label_fail_restart_Click(object sender, EventArgs e)
         {
             fnFailLabelsNotVisible();
-            fnStartNewGame();
-            playing = true;
+            fnStartNewGrid(array_memory);
+        }
+
+        // Affiche le temps écoulé pour la partie en cours
+        private void timer_game_Tick(object sender, EventArgs e)
+        {
+            if(playing == true)
+            {
+                seconds += 1;
+                time = TimeSpan.FromSeconds(seconds);
+                label_time.Text = "Temps : " + time.ToString(@"hh\:mm\:ss");
+            }
+        }
+
+        // Change l'image du bouton play/pause et met en pause ou reprend la partie
+        private void picture_play_pause_Click(object sender, EventArgs e)
+        {
+            if(playing == true)
+            {
+                playing = false;
+                picture_play_pause.Image = global::_2048_v0._3.Properties.Resources.play_button;
+                fnDisplayPause();
+            }
+            else
+            {
+                playing = true;
+                picture_play_pause.Image = global::_2048_v0._3.Properties.Resources.pause_button;
+                label_pause.Visible = false;
+            }
         }
     }
 }
