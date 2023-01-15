@@ -1,4 +1,7 @@
-﻿namespace _2048_v0._3
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace _2048_v0._3
 {
     partial class Form1
     {
@@ -45,6 +48,11 @@
             this.label_changements = new System.Windows.Forms.Label();
             this.timer_game = new System.Windows.Forms.Timer(this.components);
             this.picture_play_pause = new System.Windows.Forms.PictureBox();
+            this.menuJoueurToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.nouvellePartieToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.activerdésactiverLaPauseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.quitterLapplicationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.annulerLeDernierDéplacementEntréeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picture_play_pause)).BeginInit();
             this.SuspendLayout();
@@ -53,10 +61,11 @@
             // 
             this.menuStrip1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuJoueurToolStripMenuItem,
             this.testsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(765, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(749, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -69,8 +78,9 @@
             this.startNewGridToolStripMenuItem,
             this.enableTestToolStripMenuItem});
             this.testsToolStripMenuItem.Name = "testsToolStripMenuItem";
-            this.testsToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.testsToolStripMenuItem.Text = "Tests";
+            this.testsToolStripMenuItem.Size = new System.Drawing.Size(120, 20);
+            this.testsToolStripMenuItem.Text = "Menu Développeur";
+            this.testsToolStripMenuItem.Visible = false;
             // 
             // displayBeginningToolStripMenuItem
             // 
@@ -149,6 +159,7 @@
             this.btTasser.UseVisualStyleBackColor = true;
             this.btTasser.Visible = false;
             this.btTasser.Click += new System.EventHandler(this.btTasser_Click);
+            this.btTasser.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
             // 
             // txtResult
             // 
@@ -161,6 +172,7 @@
             // label_changements
             // 
             this.label_changements.AutoSize = true;
+            this.label_changements.BackColor = System.Drawing.SystemColors.Control;
             this.label_changements.ForeColor = System.Drawing.SystemColors.ControlText;
             this.label_changements.Location = new System.Drawing.Point(442, 96);
             this.label_changements.Name = "label_changements";
@@ -176,21 +188,63 @@
             // 
             // picture_play_pause
             // 
+            this.picture_play_pause.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(163)))), ((int)(((byte)(102)))));
             this.picture_play_pause.Image = global::_2048_v0._3.Properties.Resources.pause_button;
             this.picture_play_pause.Location = new System.Drawing.Point(355, 123);
             this.picture_play_pause.Name = "picture_play_pause";
             this.picture_play_pause.Size = new System.Drawing.Size(40, 40);
             this.picture_play_pause.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.picture_play_pause.TabIndex = 8;
+            this.picture_play_pause.TabIndex = 0;
             this.picture_play_pause.TabStop = false;
             this.picture_play_pause.Visible = false;
             this.picture_play_pause.Click += new System.EventHandler(this.picture_play_pause_Click);
+            // 
+            // menuJoueurToolStripMenuItem
+            // 
+            this.menuJoueurToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.nouvellePartieToolStripMenuItem,
+            this.activerdésactiverLaPauseToolStripMenuItem,
+            this.annulerLeDernierDéplacementEntréeToolStripMenuItem,
+            this.quitterLapplicationToolStripMenuItem});
+            this.menuJoueurToolStripMenuItem.Name = "menuJoueurToolStripMenuItem";
+            this.menuJoueurToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
+            this.menuJoueurToolStripMenuItem.Text = "Menu";
+            // 
+            // nouvellePartieToolStripMenuItem
+            // 
+            this.nouvellePartieToolStripMenuItem.Name = "nouvellePartieToolStripMenuItem";
+            this.nouvellePartieToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.nouvellePartieToolStripMenuItem.Text = "Nouvelle partie";
+            this.nouvellePartieToolStripMenuItem.Click += new System.EventHandler(this.startNewGridToolStripMenuItem_Click);
+            // 
+            // activerdésactiverLaPauseToolStripMenuItem
+            // 
+            this.activerdésactiverLaPauseToolStripMenuItem.Name = "activerdésactiverLaPauseToolStripMenuItem";
+            this.activerdésactiverLaPauseToolStripMenuItem.Size = new System.Drawing.Size(233, 22);
+            this.activerdésactiverLaPauseToolStripMenuItem.Text = "Activer/désactiver la pause (P)";
+            this.activerdésactiverLaPauseToolStripMenuItem.Click += new System.EventHandler(this.picture_play_pause_Click);
+            // 
+            // quitterLapplicationToolStripMenuItem
+            // 
+            this.quitterLapplicationToolStripMenuItem.Name = "quitterLapplicationToolStripMenuItem";
+            this.quitterLapplicationToolStripMenuItem.Size = new System.Drawing.Size(215, 22);
+            this.quitterLapplicationToolStripMenuItem.Text = "Quitter l\'application";
+            this.quitterLapplicationToolStripMenuItem.Click += new System.EventHandler(this.quitterLapplicationToolStripMenuItem_Click);
+            // 
+            // annulerLeDernierDéplacementEntréeToolStripMenuItem
+            // 
+            this.annulerLeDernierDéplacementEntréeToolStripMenuItem.Name = "annulerLeDernierDéplacementEntréeToolStripMenuItem";
+            this.annulerLeDernierDéplacementEntréeToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.annulerLeDernierDéplacementEntréeToolStripMenuItem.Text = "Annuler le dernier déplacement (Backspace)";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(765, 636);
+            this.BackColor = System.Drawing.Color.DarkGoldenrod;
+            this.BackgroundImage = global::_2048_v0._3.Properties.Resources.squares_orange_gradient_abstract_wallpaper_medium_pale_invert;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.ClientSize = new System.Drawing.Size(749, 711);
             this.Controls.Add(this.picture_play_pause);
             this.Controls.Add(this.label_changements);
             this.Controls.Add(this.txtResult);
@@ -201,6 +255,8 @@
             this.Controls.Add(this.txtTuile1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
+            this.MaximumSize = new System.Drawing.Size(765, 750);
+            this.MinimumSize = new System.Drawing.Size(765, 750);
             this.Name = "Form1";
             this.Text = "2048";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -231,6 +287,11 @@
         private System.Windows.Forms.ToolStripMenuItem displayExampleTestGridToolStripMenuItem;
         private System.Windows.Forms.Timer timer_game;
         private System.Windows.Forms.PictureBox picture_play_pause;
+        private ToolStripMenuItem menuJoueurToolStripMenuItem;
+        private ToolStripMenuItem nouvellePartieToolStripMenuItem;
+        private ToolStripMenuItem activerdésactiverLaPauseToolStripMenuItem;
+        private ToolStripMenuItem quitterLapplicationToolStripMenuItem;
+        private ToolStripMenuItem annulerLeDernierDéplacementEntréeToolStripMenuItem;
     }
 }
 

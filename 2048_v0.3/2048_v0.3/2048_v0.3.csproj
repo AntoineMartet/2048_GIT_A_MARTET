@@ -86,5 +86,20 @@
   <ItemGroup>
     <None Include="Resources\play-button.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\squares-orange-gradient-abstract-wallpaper.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\squares-orange-gradient-abstract-wallpaper-medium.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\squares-orange-gradient-abstract-wallpaper-medium-pale.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\squares-orange-gradient-abstract-wallpaper-medium-pale-invert.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\squares-orange-gradient-abstract-wallpaper-small-pale-invert.jpg" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

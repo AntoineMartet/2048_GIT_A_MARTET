@@ -79,5 +79,55 @@ namespace _2048_v0._3.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap squares_orange_gradient_abstract_wallpaper {
+            get {
+                object obj = ResourceManager.GetObject("squares-orange-gradient-abstract-wallpaper", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap squares_orange_gradient_abstract_wallpaper_medium {
+            get {
+                object obj = ResourceManager.GetObject("squares-orange-gradient-abstract-wallpaper-medium", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap squares_orange_gradient_abstract_wallpaper_medium_pale {
+            get {
+                object obj = ResourceManager.GetObject("squares-orange-gradient-abstract-wallpaper-medium-pale", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap squares_orange_gradient_abstract_wallpaper_medium_pale_invert {
+            get {
+                object obj = ResourceManager.GetObject("squares-orange-gradient-abstract-wallpaper-medium-pale-invert", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap squares_orange_gradient_abstract_wallpaper_small_pale_invert {
+            get {
+                object obj = ResourceManager.GetObject("squares-orange-gradient-abstract-wallpaper-small-pale-invert", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
