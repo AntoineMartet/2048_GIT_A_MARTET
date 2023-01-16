@@ -2,19 +2,26 @@
 // Projet : 2048_v0.3
 // Auteur : Antoine MARTET
 // Création : mercredi 02.12.2022
-// Dernière MAJ : lundi 14.01.2023 par Antoine MARTET
+// Dernière MAJ : lundi 16.01.2023 par Antoine MARTET
 // But du programme (sprint 4):
 //    - Finaliser le développement de l'application 2048 et y implémenter des options supplémentaires.
 // Options choisies :
 //    - Affichage du score de la partie en cours et du record de score (sauvegardé automatiuement dans un fichier)
 //    - Affichage du chrono de la partie en cours et du record de temps (sauvegardé automatiquement dans un fichier)
 //    - Bouton de pause interactif (Raccourci : P)
-//    - Fonction pour annuler le dernier mouvement (Raccourci : Espace)
-//    - Menus pour commencer une nouvelle partie, pour mettre en pause la partie, pour annuler le dernier déplacement, pour quitter l'application
+//    - Fonction pour annuler le dernier mouvement (Raccourci : Backspace)
+//    - Menus pour commencer une nouvelle partie, pour mettre en pause la partie, pour annuler le dernier déplacement,
+//      pour couper/activer le son, pour quitter l'application
 //    - Image en background
+//    - Barre de progression
+//    - Petit effet sonore à chaque déplacement réussi
 //    - Fenêtre non redimensionnable pour garder une apparence et des proportions cohérentes
 //    - Messages des différentes fins de parties affinés (fin de partie sans victoire au préalable, fin de partie avec victoire au préalable, mention du score et du chrono)
-//    - Menu Développeur toujours présent dans le code mais en Visible = false
+//    - Menu Développeur toujours présent dans le code mais en Visible = false. Changeable en cliquant sur le MenuStrip sur Form1.cs [Design]
+// Aides :
+//    - Maxime pour l'idée (mais pas l'implémentation) de la barre de progression
+//    - Lucas pour l'implémentation (mais pas l'idée) d'un son dans le jeu
+//    - Maikol pour retrouver l'ancien score après une annulation de déplacement
 
 using System;
 using System.Collections.Generic;
@@ -26,6 +33,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Media;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace _2048_v0._3
@@ -68,6 +76,8 @@ namespace _2048_v0._3
         int seconds = 0;
         int score = 0;
         int scoreRecord;
+        bool soundActive = true;
+        int score_cancel;
         TimeSpan time = new TimeSpan();
         TimeSpan timeRecord = new TimeSpan();
 
@@ -117,6 +127,9 @@ namespace _2048_v0._3
             picture_play_pause.Visible = true;
             picture_play_pause.Image = global::_2048_v0._3.Properties.Resources.pause_button;
             label_pause.Visible = false;
+            label_progression_background.Visible = true;
+            label_progression.Visible = true;
+            label_progression.BringToFront();
 
             if (array == array_memory)
             {
@@ -133,26 +146,7 @@ namespace _2048_v0._3
 
             fnDisplay(array_memory);
             fnCopy2DArray(array_memory, array_cancel);
-
-            /*
-            
-            /!\ NE SURTOUT PAS FAIRE CA :
-            
-            array_memory = array_example_ingame;
-            fnDisplay(array_memory);
-
-            /!\ In C#, arrays are of reference type and not of value type. The value of array_example_ingame is just a reference to a byte array.
-            So after that assignment, changed made to the byte array "via" one variable will be visible "via" the other variable, as they now both
-            reference to the same byte array (they point to the same memory location).
-            Pour des array 1D on peut utiliser la méthode Array.CopyTo : sourceArray.CopyTo(destinationArray, startingIndex);
-            Pour des array 2D le mieux pour l'instant est de faire une double boucle for.
-
-            Sources :
-            https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/reference-types?redirectedfrom=MSDN
-            https://stackoverflow.com/questions/29398848/c-assign-array-to-another-array-copy-or-pointer-exchange
-            https://learn.microsoft.com/en-us/dotnet/api/system.array.copyto?redirectedfrom=MSDN&view=net-7.0#System_Array_CopyTo_System_Array_System_Int32_
-
-            */
+            fnUpdateProgression(fnHighestValue(array_memory));
         }
 
         // Déclaration de la fonction appelée pour :
@@ -336,10 +330,9 @@ namespace _2048_v0._3
             return listeCoordZero;
         }
 
-        // Crée une tuile de valeur 2 ou 4 si un changement a eu lieu suite à une tentative de tassement
+        // Crée une tuile de valeur 2 ou 4 sur une tuile vide
         private void fnCreateTile(List<int> liste)
         {
-
             int index_random = random.Next(liste.Count);
 
             // Maintenant on veut mettre un 2 dans la tuile de memory_array qui correspond à la valeur stockée à l'index index_random de array
@@ -530,22 +523,7 @@ namespace _2048_v0._3
             label_fail_restart.Visible = false;
         }
 
-        // Affiche le message de pause et cache la grille
-        private void fnDisplayPause()
-        {
-            label_pause.Bounds = new Rectangle(170, 170, 410, 410);
-            label_pause.BackColor = Color.FromArgb(255, 128, 0);
-            label_pause.Font = new Font("Arial", 18);
-            label_pause.Text = "Partie en pause";
-            label_pause.TextAlign = ContentAlignment.MiddleCenter;
-            label_pause.BorderStyle = BorderStyle.FixedSingle;
-            label_pause.TabIndex = 8;
-            Controls.Add(label_pause);
-            label_pause.Visible = true;
-            label_pause.BringToFront();
-        }
-
-        // Mise à jour de la variable scoreRecord, de son affichage, et du fichier qui contient le record de score
+        // Met à jour la variable scoreRecord, son affichage, et le fichier qui contient le record de score
         private void fnUpdateScoreRecord()
         {
             scoreRecord = score;
@@ -556,7 +534,7 @@ namespace _2048_v0._3
             }
         }
 
-        // Mise à jour de la variable timeRecord, de son affichage, et du fichier qui contient le record de temps
+        // Met à jour la variable timeRecord, son affichage, et le fichier qui contient le record de temps
         private void fnUpdateTimeRecord()
         {
             timeRecord = time;
@@ -564,6 +542,34 @@ namespace _2048_v0._3
             using (StreamWriter writer = new StreamWriter(@"TimeRecord.txt"))
             {
                 writer.Write(time.Seconds);
+            }
+        }
+
+        // Retourne la valeur la plus élevée du tableau fourni
+        private int fnHighestValue(int[,] array)
+        {
+            int highestValue = 0;
+            for (int i = 0; i < array.GetLength(0); i++)
+            {
+                for (int j = 0; j < array.GetLength(0); j++)
+                {
+                    if (array[i, j] > highestValue)
+                    {
+                        highestValue = array[i, j];
+                    }
+                }
+            }
+            return highestValue;
+        }
+
+        // Met à jour la longueur de la barre de progression
+        private void fnUpdateProgression(int tileValue)
+        {
+            if(hasWon == false) // Après avoir gagné (hasWon = true), on ne veut pas que la barre progresse encore pour 4096 par exemple
+            {
+                double progressionLog = Convert.ToInt32(Math.Log(Convert.ToDouble(tileValue), 2));
+                double progressionPercent = (progressionLog / 11) * 100;
+                label_progression.Bounds = new Rectangle(175, 590, 4 * Convert.ToInt32(progressionPercent), 25);
             }
         }
 
@@ -589,6 +595,7 @@ namespace _2048_v0._3
                     Controls.Add(array_labels[i, j]);
                 }
             }
+
             // On créer un label pour le fond de la grille
             label_background.Bounds = new Rectangle(170, 170, 410, 410);
             label_background.BackColor = Color.Gray;
@@ -604,7 +611,7 @@ namespace _2048_v0._3
             label_score_text.Font = MediumFont;
             Controls.Add(label_score_text);
 
-            // On crée un label pour le nombre du score aligné à droite
+            // On crée un label pour le nombre du score aligné à droite (ce label est partiellement superposé à label_score_text)
             label_score_number.Bounds = new Rectangle(510, 145, 70, 20);
             label_score_number.BackColor = Color.Gray;
             label_score_number.ForeColor = Color.White;
@@ -623,13 +630,13 @@ namespace _2048_v0._3
             label_record_text.Font = MediumFont;
             Controls.Add(label_record_text);
 
-            // On obtient le record de score stocké dans un fichier
+            // On obtient le record de score stocké dans le fichier ScoreRecord.txt dans 2048_v0.3\bin\Debug
             using (StreamReader reader = new StreamReader(@"ScoreRecord.txt"))
             {
                 scoreRecord = Convert.ToInt32(reader.ReadLine());
             }
 
-            // On crée un label pour le nombre du record de score aligné à droite
+            // On crée un label pour le nombre du record de score aligné à droite (ce label est partiellement superposé à label_record_text)
             label_record_number.Bounds = new Rectangle(510, 120, 70, 20);
             label_record_number.BackColor = Color.Gray;
             label_record_number.ForeColor = Color.White;
@@ -648,7 +655,7 @@ namespace _2048_v0._3
             label_time.Font = MediumFont;
             Controls.Add(label_time);
 
-            // On obtient le record de temps stocké dans un fichier
+            // On obtient le record de temps stocké dans le fichier TimeRecord.txt dans 2048_v0.3\bin\Debug
             using (StreamReader reader = new StreamReader(@"TimeRecord.txt"))
             {
                 timeRecord = TimeSpan.FromSeconds(Convert.ToInt32(reader.ReadLine()));
@@ -663,8 +670,16 @@ namespace _2048_v0._3
             label_time_record.Font = MediumFont;
             Controls.Add(label_time_record);
 
-            // On donne au background du bouton de pause la même couleur que l'image derrière
-
+            label_pause.Bounds = new Rectangle(170, 170, 410, 410);
+            label_pause.BackColor = Color.FromArgb(255, 128, 0);
+            label_pause.Font = new Font("Arial", 18);
+            label_pause.Text = "Partie en pause";
+            label_pause.TextAlign = ContentAlignment.MiddleCenter;
+            label_pause.BorderStyle = BorderStyle.FixedSingle;
+            label_pause.TabIndex = 8;
+            Controls.Add(label_pause);
+            label_pause.Visible = false;
+            label_pause.BringToFront();
         }
 
         // Affiche le tableau mémoire de début de partie
@@ -724,15 +739,14 @@ namespace _2048_v0._3
         // Essaie de tasser, crée une tuile si nécessaire, checke la victoire et la défaite
         // S'exécute quand on appuie sur n'importe quelle touche du clavier
         // e contient des infos sur l'évènement, dont le KeyCode (la touche appuyée)
-        // Si on crée un bouton, écrire Form1_KeyDown(sender, e) dans Bouton1_Keydown pour transmettre l'info des touches appuyées à Form1
-        // Ca marchera pour ASDW mais pas pour les flèches
         private void Form1_KeyUp(object sender, KeyEventArgs e)
         {
             int changes = 0;
             int changes_temp;
             int[] array_line;
             bool ligne;
-            int[,] array_cancel_temp = { { 2, 0, 0, 2 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+            int[,] array_cancel_temp = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+
             fnCopy2DArray(array_memory, array_cancel_temp);
 
             if (e.KeyCode == Keys.P)
@@ -744,6 +758,7 @@ namespace _2048_v0._3
             {
                 if (e.KeyCode == Keys.A || e.KeyCode == Keys.Left) // Tasser à gauche
                 {
+                    score_cancel = score;
                     ligne = true;
                     for (int i = 0; i < 4; i++) // i = numéro de ligne
                     {
@@ -756,6 +771,7 @@ namespace _2048_v0._3
                 }
                 else if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right) // Tasser à droite
                 {
+                    score_cancel = score;
                     ligne = true;
                     for (int i = 0; i < 4; i++) // i = numéro de ligne
                     {
@@ -767,6 +783,7 @@ namespace _2048_v0._3
                 }
                 else if (e.KeyCode == Keys.W || e.KeyCode == Keys.Up) // Tasser en haut
                 {
+                    score_cancel = score;
                     ligne = false;
                     for (int i = 0; i < 4; i++) // i = numéro de colonne
                     {
@@ -778,6 +795,7 @@ namespace _2048_v0._3
                 }
                 else if (e.KeyCode == Keys.S || e.KeyCode == Keys.Down) // Tasser en bas
                 {
+                    score_cancel = score;
                     ligne = false;
                     for (int i = 0; i < 4; i++) // i = numéro de colonne
                     {
@@ -789,6 +807,8 @@ namespace _2048_v0._3
                 }
                 else if (e.KeyCode == Keys.Back)
                 {
+                    score = score_cancel;
+                    label_score_number.Text = Convert.ToString(score);
                     fnCopy2DArray(array_cancel, array_memory);
                     fnDisplay(array_memory);
                 }
@@ -798,12 +818,20 @@ namespace _2048_v0._3
                 // Si changement : on crée une nouvelle tuile; on actualise le score et array_cancel; on checke le record, la victoire et la défaite
                 if (changes > 0)
                 {
+                    if(soundActive == true)
+                    {
+                        SoundPlayer sound = new SoundPlayer(@"yottasounds_pop.wav");
+                        sound.Play();
+                    }
+
                     fnCopy2DArray(array_cancel_temp, array_cancel);
-                    label_changements.Text = "Changements : oui";
+                    label_changements.Text = "Changements : oui"; // Visible seulement avec la fonction Test affichée (cf. Menu Dev)
                     fnCreateTile(list_zero);
                     fnDisplay(array_memory);
-                    list_zero = fnListCoordZero(); // MAJ de la liste pour la fonction fnCheckFail un peu plus bas
+                    list_zero = fnListCoordZero(); // MAJ de la liste pour la fonction fnCheckFail() un peu plus bas
                     label_score_number.Text = Convert.ToString(score);
+
+                    fnUpdateProgression(fnHighestValue(array_memory));
 
                     if (score > scoreRecord)
                     {
@@ -839,14 +867,10 @@ namespace _2048_v0._3
                             }
                         }
                     }
-
-                    /* NB : il est possible d'à la fois gagner et perdre. Du coup pour l'instant on checke la victoire en 2e pour que le message
-                     * de félicitation apparaisse en premier. Celui de défaite est toujours affiché mais juste en dessous.
-                     */
                 }
                 else
                 {
-                    label_changements.Text = "Changements : non";
+                    label_changements.Text = "Changements : non"; // Visible seulement avec la fonction Test affichée (cf. Menu Dev)
                 }
             }
         }
@@ -856,8 +880,8 @@ namespace _2048_v0._3
         {
             fnVictoryLabelsNotVisible();
 
-            // Si fnCheckFail renvoie false, alors les touches de jeu, le bouton de pause et le compteur (conditionné par playing = true) doivent redevenir actifs
-            if (!fnCheckFail())
+            // Si fnCheckFail() renvoie false, alors les touches de jeu, le bouton de pause et le compteur (conditionné par playing = true) doivent redevenir actifs
+            if (fnCheckFail() == false)
             {
                 playing = true;
                 picture_play_pause.Visible = true;
@@ -904,7 +928,7 @@ namespace _2048_v0._3
                 {
                     playing = false;
                     picture_play_pause.Image = global::_2048_v0._3.Properties.Resources.play_button;
-                    fnDisplayPause();
+                    label_pause.Visible = true;
                 }
                 else
                 {
@@ -915,9 +939,23 @@ namespace _2048_v0._3
             }
         }
 
+        // Quitte l'application
         private void quitterLapplicationToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        // Coupe/active le son
+        private void couperactiverLeSonToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if(soundActive == true)
+            {
+                soundActive = false;
+            }
+            else
+            {
+                soundActive = true;
+            }
         }
     }
 }

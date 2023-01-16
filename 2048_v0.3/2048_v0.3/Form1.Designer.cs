@@ -33,6 +33,12 @@ namespace _2048_v0._3
         {
             this.components = new System.ComponentModel.Container();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.menuJoueurToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.nouvellePartieToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.activerdésactiverLaPauseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.annulerLeDernierDéplacementEntréeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.couperactiverLeSonToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.quitterLapplicationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.displayBeginningToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.displayExampleInGameGridToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -48,11 +54,8 @@ namespace _2048_v0._3
             this.label_changements = new System.Windows.Forms.Label();
             this.timer_game = new System.Windows.Forms.Timer(this.components);
             this.picture_play_pause = new System.Windows.Forms.PictureBox();
-            this.menuJoueurToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.nouvellePartieToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.activerdésactiverLaPauseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.quitterLapplicationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.annulerLeDernierDéplacementEntréeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.label_progression_background = new System.Windows.Forms.Label();
+            this.label_progression = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picture_play_pause)).BeginInit();
             this.SuspendLayout();
@@ -68,6 +71,52 @@ namespace _2048_v0._3
             this.menuStrip1.Size = new System.Drawing.Size(749, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
+            // 
+            // menuJoueurToolStripMenuItem
+            // 
+            this.menuJoueurToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.nouvellePartieToolStripMenuItem,
+            this.activerdésactiverLaPauseToolStripMenuItem,
+            this.annulerLeDernierDéplacementEntréeToolStripMenuItem,
+            this.couperactiverLeSonToolStripMenuItem,
+            this.quitterLapplicationToolStripMenuItem});
+            this.menuJoueurToolStripMenuItem.Name = "menuJoueurToolStripMenuItem";
+            this.menuJoueurToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
+            this.menuJoueurToolStripMenuItem.Text = "Menu";
+            // 
+            // nouvellePartieToolStripMenuItem
+            // 
+            this.nouvellePartieToolStripMenuItem.Name = "nouvellePartieToolStripMenuItem";
+            this.nouvellePartieToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.nouvellePartieToolStripMenuItem.Text = "Nouvelle partie";
+            this.nouvellePartieToolStripMenuItem.Click += new System.EventHandler(this.startNewGridToolStripMenuItem_Click);
+            // 
+            // activerdésactiverLaPauseToolStripMenuItem
+            // 
+            this.activerdésactiverLaPauseToolStripMenuItem.Name = "activerdésactiverLaPauseToolStripMenuItem";
+            this.activerdésactiverLaPauseToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.activerdésactiverLaPauseToolStripMenuItem.Text = "Activer/désactiver la pause (P)";
+            this.activerdésactiverLaPauseToolStripMenuItem.Click += new System.EventHandler(this.picture_play_pause_Click);
+            // 
+            // annulerLeDernierDéplacementEntréeToolStripMenuItem
+            // 
+            this.annulerLeDernierDéplacementEntréeToolStripMenuItem.Name = "annulerLeDernierDéplacementEntréeToolStripMenuItem";
+            this.annulerLeDernierDéplacementEntréeToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.annulerLeDernierDéplacementEntréeToolStripMenuItem.Text = "Annuler le dernier déplacement (Backspace)";
+            // 
+            // couperactiverLeSonToolStripMenuItem
+            // 
+            this.couperactiverLeSonToolStripMenuItem.Name = "couperactiverLeSonToolStripMenuItem";
+            this.couperactiverLeSonToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.couperactiverLeSonToolStripMenuItem.Text = "Couper/activer le son";
+            this.couperactiverLeSonToolStripMenuItem.Click += new System.EventHandler(this.couperactiverLeSonToolStripMenuItem_Click);
+            // 
+            // quitterLapplicationToolStripMenuItem
+            // 
+            this.quitterLapplicationToolStripMenuItem.Name = "quitterLapplicationToolStripMenuItem";
+            this.quitterLapplicationToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
+            this.quitterLapplicationToolStripMenuItem.Text = "Quitter l\'application";
+            this.quitterLapplicationToolStripMenuItem.Click += new System.EventHandler(this.quitterLapplicationToolStripMenuItem_Click);
             // 
             // testsToolStripMenuItem
             // 
@@ -199,43 +248,23 @@ namespace _2048_v0._3
             this.picture_play_pause.Visible = false;
             this.picture_play_pause.Click += new System.EventHandler(this.picture_play_pause_Click);
             // 
-            // menuJoueurToolStripMenuItem
+            // label_progression_background
             // 
-            this.menuJoueurToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.nouvellePartieToolStripMenuItem,
-            this.activerdésactiverLaPauseToolStripMenuItem,
-            this.annulerLeDernierDéplacementEntréeToolStripMenuItem,
-            this.quitterLapplicationToolStripMenuItem});
-            this.menuJoueurToolStripMenuItem.Name = "menuJoueurToolStripMenuItem";
-            this.menuJoueurToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
-            this.menuJoueurToolStripMenuItem.Text = "Menu";
+            this.label_progression_background.BackColor = System.Drawing.Color.Gray;
+            this.label_progression_background.Location = new System.Drawing.Point(170, 585);
+            this.label_progression_background.Name = "label_progression_background";
+            this.label_progression_background.Size = new System.Drawing.Size(410, 35);
+            this.label_progression_background.TabIndex = 8;
+            this.label_progression_background.Visible = false;
             // 
-            // nouvellePartieToolStripMenuItem
+            // label_progression
             // 
-            this.nouvellePartieToolStripMenuItem.Name = "nouvellePartieToolStripMenuItem";
-            this.nouvellePartieToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.nouvellePartieToolStripMenuItem.Text = "Nouvelle partie";
-            this.nouvellePartieToolStripMenuItem.Click += new System.EventHandler(this.startNewGridToolStripMenuItem_Click);
-            // 
-            // activerdésactiverLaPauseToolStripMenuItem
-            // 
-            this.activerdésactiverLaPauseToolStripMenuItem.Name = "activerdésactiverLaPauseToolStripMenuItem";
-            this.activerdésactiverLaPauseToolStripMenuItem.Size = new System.Drawing.Size(233, 22);
-            this.activerdésactiverLaPauseToolStripMenuItem.Text = "Activer/désactiver la pause (P)";
-            this.activerdésactiverLaPauseToolStripMenuItem.Click += new System.EventHandler(this.picture_play_pause_Click);
-            // 
-            // quitterLapplicationToolStripMenuItem
-            // 
-            this.quitterLapplicationToolStripMenuItem.Name = "quitterLapplicationToolStripMenuItem";
-            this.quitterLapplicationToolStripMenuItem.Size = new System.Drawing.Size(215, 22);
-            this.quitterLapplicationToolStripMenuItem.Text = "Quitter l\'application";
-            this.quitterLapplicationToolStripMenuItem.Click += new System.EventHandler(this.quitterLapplicationToolStripMenuItem_Click);
-            // 
-            // annulerLeDernierDéplacementEntréeToolStripMenuItem
-            // 
-            this.annulerLeDernierDéplacementEntréeToolStripMenuItem.Name = "annulerLeDernierDéplacementEntréeToolStripMenuItem";
-            this.annulerLeDernierDéplacementEntréeToolStripMenuItem.Size = new System.Drawing.Size(306, 22);
-            this.annulerLeDernierDéplacementEntréeToolStripMenuItem.Text = "Annuler le dernier déplacement (Backspace)";
+            this.label_progression.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            this.label_progression.Location = new System.Drawing.Point(175, 590);
+            this.label_progression.Name = "label_progression";
+            this.label_progression.Size = new System.Drawing.Size(36, 25);
+            this.label_progression.TabIndex = 9;
+            this.label_progression.Visible = false;
             // 
             // Form1
             // 
@@ -245,6 +274,8 @@ namespace _2048_v0._3
             this.BackgroundImage = global::_2048_v0._3.Properties.Resources.squares_orange_gradient_abstract_wallpaper_medium_pale_invert;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.ClientSize = new System.Drawing.Size(749, 711);
+            this.Controls.Add(this.label_progression);
+            this.Controls.Add(this.label_progression_background);
             this.Controls.Add(this.picture_play_pause);
             this.Controls.Add(this.label_changements);
             this.Controls.Add(this.txtResult);
@@ -292,6 +323,9 @@ namespace _2048_v0._3
         private ToolStripMenuItem activerdésactiverLaPauseToolStripMenuItem;
         private ToolStripMenuItem quitterLapplicationToolStripMenuItem;
         private ToolStripMenuItem annulerLeDernierDéplacementEntréeToolStripMenuItem;
+        private Label label_progression_background;
+        private Label label_progression;
+        private ToolStripMenuItem couperactiverLeSonToolStripMenuItem;
     }
 }
 
